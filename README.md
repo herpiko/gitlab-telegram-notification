@@ -1,4 +1,3 @@
 # gitlab-telegram-notification
 
-
-<img width="671" alt="Screenshot 2023-12-03 at 02 17 10" src="https://github.com/herpiko/gitlab-telegram-notification/assets/2534060/3401887e-6711-4715-92f1-44cd98681e8f">
+<img width="654" alt="Screenshot 2023-12-03 at 02 18 14" src="https://github.com/herpiko/gitlab-telegram-notification/assets/2534060/c30ebfc6-d19b-417a-9ca9-4a8225e59630">
