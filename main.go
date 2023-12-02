@@ -79,28 +79,28 @@ func generateMessage(event GitLabEvent) string {
 		if event.TotalCommitCount > 0 {
 			branchName := strings.TrimPrefix(event.Ref, "refs/heads/")
 			branchLink := fmt.Sprintf("%s/-/tree/%s", event.Project.WebURL, url.QueryEscape(branchName))
-			return fmt.Sprintf("🔨 New push by %s to %s:\n\nTarget branch: %s\nLink: %s",
+			return fmt.Sprintf("🔨 New push by %s to %s.\nTarget branch: %s\n%s",
 				event.UserUsername, event.Project.Name, event.Ref, branchLink)
 		}
 	case "merge_request":
 		if event.ObjectAttributes.Action == "approved" {
-			return fmt.Sprintf("👍 This merge request get APPROVED by %s:\n\nTitle: %s\nLink: %s",
+			return fmt.Sprintf("👍 This merge request get APPROVED by %s: %s\n%s",
 				event.User.Username, event.ObjectAttributes.Title, event.ObjectAttributes.URL)
 		} else if event.ObjectAttributes.Action == "unapproved" {
-			return fmt.Sprintf("👎 This merge request get UNAPPROVED by %s:\n\nTitle: %s\nLink: %s",
+			return fmt.Sprintf("👎 This merge request get UNAPPROVED by %s: %s\n%s",
 				event.User.Username, event.ObjectAttributes.Title, event.ObjectAttributes.URL)
 		} else if event.ObjectAttributes.Action == "open" || event.ObjectAttributes.Action == "reopen" {
-			return fmt.Sprintf("🔥 New merge request opened by %s:\n\nTitle: %s\nLink: %s",
+			return fmt.Sprintf("🔥 New merge request opened by %s: %s\n%s",
 				event.User.Username, event.ObjectAttributes.Title, event.ObjectAttributes.URL)
 		} else if event.ObjectAttributes.Action == "close" {
-			return fmt.Sprintf("❌ Merge request get closed by %s:\n\nTitle: %s\nLink: %s",
+			return fmt.Sprintf("❌ Merge request get closed by %s: %s\n%s",
 				event.User.Username, event.ObjectAttributes.Title, event.ObjectAttributes.URL)
 		} else if event.ObjectAttributes.Action == "merge" {
-			return fmt.Sprintf("🎉 Merge request get MERGED by %s:\n\nTitle: %s\nLink: %s",
+			return fmt.Sprintf("🎉 Merge request get MERGED by %s: %s\n%s",
 				event.User.Username, event.ObjectAttributes.Title, event.ObjectAttributes.URL)
 		}
 	case "note":
-		return fmt.Sprintf("💬 New comment by %s:\n\nLink: %s",
+		return fmt.Sprintf("💬 New comment by %s.\n%s",
 			event.User.Username, event.ObjectAttributes.URL)
 	default:
 		// Unknown type, do not send
@@ -112,8 +112,9 @@ func generateMessage(event GitLabEvent) string {
 func sendTelegramMessage(message string) {
 	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", TelegramBotToken)
 	data := url.Values{
-		"chat_id": {ChatID},
-		"text":    {message},
+		"chat_id":                  {ChatID},
+		"text":                     {message},
+		"disable_web_page_preview": {"false"},
 	}
 
 	resp, err := http.PostForm(apiURL, data)
