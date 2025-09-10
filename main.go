@@ -101,8 +101,8 @@ func (g *GitlabTelegram) generateMessage(event GitLabEvent) string {
 		return fmt.Sprintf("💬 New comment by %s.\n%s",
 			event.User.Username, event.ObjectAttributes.URL)
 	case "build":
-		return fmt.Sprintf("🚀 Job status for %s - %s : %s\nFailure reason: %s.\n%s",
-			event.Project.Name, event.BuildName, event.BuildStatus, event.BuildFailureReason, event.ObjectAttributes.URL)
+		return fmt.Sprintf("🚀 Job status for %s - %s : %s.\n%s",
+			event.Project.Name, event.BuildName, event.BuildStatus, event.ObjectAttributes.URL)
 	default:
 		// Unknown type, do not send
 		return ""
