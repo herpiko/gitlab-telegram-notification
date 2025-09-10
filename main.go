@@ -101,8 +101,14 @@ func (g *GitlabTelegram) generateMessage(event GitLabEvent) string {
 		return fmt.Sprintf("💬 New comment by %s.\n%s",
 			event.User.Username, event.ObjectAttributes.URL)
 	case "build":
-		return fmt.Sprintf("🚀 Job status for %s - %s : %s.\n%s",
-			event.Project.Name, event.BuildName, event.BuildStatus, event.ObjectAttributes.URL)
+		if event.BuildStatus == "failed" {
+			return fmt.Sprintf("🚀 Job status for %s - %s : %s ❌\n%s",
+				event.Project.Name, event.BuildName, event.BuildStatus, event.ObjectAttributes.URL)
+		}
+		if event.BuildStatus == "success" {
+			return fmt.Sprintf("🚀 Job status for %s - %s : %s ✅\n%s",
+				event.Project.Name, event.BuildName, event.BuildStatus, event.ObjectAttributes.URL)
+		}
 	default:
 		// Unknown type, do not send
 		return ""
@@ -137,5 +143,5 @@ func main() {
 	}
 	http.HandleFunc("/", g.HandleWebhook)
 	log.Println("Listening at " + os.Getenv("LISTEN_PORT"))
-	log.Fatal(http.ListenAndServe(":" + os.Getenv("LISTEN_PORT"), nil))
+	log.Fatal(http.ListenAndServe(":"+os.Getenv("LISTEN_PORT"), nil))
 }
