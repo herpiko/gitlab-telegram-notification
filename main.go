@@ -136,6 +136,6 @@ func main() {
 		ChatID:   os.Getenv("TELEGRAM_CHAT_ID"),
 	}
 	http.HandleFunc("/", g.HandleWebhook)
-	log.Println("Listening at 8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Println("Listening at " + os.Getenv("LISTEN_PORT"))
+	log.Fatal(http.ListenAndServe(":" + os.Getenv("LISTEN_PORT"), nil))
 }

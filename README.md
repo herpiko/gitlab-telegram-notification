@@ -4,11 +4,12 @@
 
 ## Usage
 
-1. Create `.env` file with this content
+1. Rename the `env` file to `.env` then fill up the content
 
 ```
 TELEGRAM_BOT_TOKEN=foobar
 TELEGRAM_CHAT_ID=foobar
+LISTEN_PORT=8080
 ```
 
 The last working bot I know that can generate group chat ID is `@SimpleID_Bot`.
