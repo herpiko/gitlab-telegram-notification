@@ -7,14 +7,10 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
-)
 
-const (
-	// Ask BotFather
-	TelegramBotToken = ""
-	// Invite this bot to get your group ChatID, Chat ID Bot (@chat_id_echo_bot) / https://web.telegram.org/a/#1513323938
-	ChatID = ""
+	"github.com/joho/godotenv"
 )
 
 type GitLabEvent struct {
@@ -34,16 +30,18 @@ type GitLabEvent struct {
 	User struct {
 		Username string `json:"username"`
 	} `json:"user"`
-	TotalCommitCount int `json:"total_commits_count"`
+	TotalCommitCount   int    `json:"total_commits_count"`
+	BuildName          string `json:"build_name"`
+	BuildStatus        string `json:"build_status"`
+	BuildFailureReason string `json:"build_failure_reason"`
 }
 
-func main() {
-	http.HandleFunc("/", handleWebhook)
-	log.Println("Listening at 8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+type GitlabTelegram struct {
+	BotToken string
+	ChatID   string
 }
 
-func handleWebhook(w http.ResponseWriter, r *http.Request) {
+func (g *GitlabTelegram) HandleWebhook(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -65,15 +63,15 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	message := generateMessage(event)
+	message := g.generateMessage(event)
 	if message != "" {
-		sendTelegramMessage(message)
+		g.sendTelegramMessage(message)
 	}
 
 	w.WriteHeader(http.StatusOK)
 }
 
-func generateMessage(event GitLabEvent) string {
+func (g *GitlabTelegram) generateMessage(event GitLabEvent) string {
 	switch event.ObjectKind {
 	case "push":
 		if event.TotalCommitCount > 0 {
@@ -102,6 +100,9 @@ func generateMessage(event GitLabEvent) string {
 	case "note":
 		return fmt.Sprintf("💬 New comment by %s.\n%s",
 			event.User.Username, event.ObjectAttributes.URL)
+	case "build":
+		return fmt.Sprintf("🚀 Job status for %s - %s : %s\nFailure reason: %s.\n%s",
+			event.Project.Name, event.BuildName, event.BuildStatus, event.BuildFailureReason, event.ObjectAttributes.URL)
 	default:
 		// Unknown type, do not send
 		return ""
@@ -109,10 +110,10 @@ func generateMessage(event GitLabEvent) string {
 	return ""
 }
 
-func sendTelegramMessage(message string) {
-	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", TelegramBotToken)
+func (g *GitlabTelegram) sendTelegramMessage(message string) {
+	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", g.BotToken)
 	data := url.Values{
-		"chat_id":                  {ChatID},
+		"chat_id":                  {g.ChatID},
 		"text":                     {message},
 		"disable_web_page_preview": {"false"},
 	}
@@ -123,4 +124,18 @@ func sendTelegramMessage(message string) {
 		return
 	}
 	defer resp.Body.Close()
+}
+
+func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	g := GitlabTelegram{
+		BotToken: os.Getenv("TELEGRAM_BOT_TOKEN"),
+		ChatID:   os.Getenv("TELEGRAM_CHAT_ID"),
+	}
+	http.HandleFunc("/", g.HandleWebhook)
+	log.Println("Listening at 8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
